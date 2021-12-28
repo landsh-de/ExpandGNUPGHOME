@@ -1,1 +1,72 @@
 
+ExpandGNUPGHOME v1.0.0.4 by Veit Berwig in 11/2021
+
+This is a quick hack of a tiny helper program for exporting the
+"GNUPGHOME" and "GNUPGCAROOT" environment variables into local user
+environment with an additional environment-update at runtime in order
+to talk to all running local user apps that the environment has
+changed.
+
+Details:
+"AppData" will be read first from:
+"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+
+"Common AppData" will be read first from:
+"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+
+The resulting value will be written into the corresponding variable
+under the Registry in "HKCU\Environment", with broadcasting a message
+"WM_SETTINGCHANGE":
+https://docs.microsoft.com/de-de/windows/win32/winmsg/wm-settingchange
+
+When a "-" is supplied to the ini-file, the the value will be deleted
+from the Registry in "HKCU\Environment".
+
+The program was coded by using the AutoIt Script-Engine for
+Win x86/x64. I did this because of execution-policy-rules;
+a standalone-executable is much better here ...
+
+* The INI-file will only be used if it is in the same directory as
+  the executable and will not be written, so you may use it in a
+  restricted environment.
+
+* If you use "ExpandGNUPGHOME" without ini-file or with all masked,
+  values in ini-file, then APPDATA will be read from the
+  "User Shell Folders" registry-key under:
+  "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\
+  Explorer\User Shell Folders"
+  GNUPGHOME is build by combining $APPDATA% and "\GnuPG" to
+  %APPDATA\GnuPG. If the registry-key cannot be read, the a default
+  value of "%USERPROFILE%\AppData\Roaming\GnuPG" will be used, if
+  ini-file or values cannot be evaluated.
+
+* If a "%"-string is found in the value of GNUPGHOME, then
+  a REG_EXPAND_SZ value will be created in the registry under
+  HKEY_CURRENT_USER\Environment.
+
+* If a "-"-string or a  ""-string ist used for GNUPGHOME in the
+  ini-file, then GNUPGHOME will be removed from the environment.
+
+* You may rename ExpandGNUPGHOME.exe to another NAME.EXE
+  (i.e. Delete_ExpandGNUPGHOME.exe). Here copy ExpandGNUPGHOME.ini
+  to Delete_ExpandGNUPGHOME.ini in order to provide a deletion
+  of GNUPGHOME by unmasking one of the deletion-lines in
+  Delete_ExpandGNUPGHOME.ini and masking the other lines (see below).
+
+Example ExpandGNUPGHOME.ini:
+====================================================================
+[Main Prefs]
+;#################
+;# Delete Values #
+;#################
+;GNUPGHOME=-
+;GNUPGCAROOT=-
+;
+;###########################
+;# Create or update Values #
+;###########################
+GNUPGHOME=%USERPROFILE%\AppData\Roaming\GnuPG
+GNUPGCAROOT=%ProgramData%\GNU\etc\gnupg\trusted-certs
+
+This code is opensource,
+may the sourcecode be with you ...
